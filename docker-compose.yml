@@ -1,0 +1,57 @@
+version: "3.9"
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: mosquitto
+    restart: unless-stopped
+    ports:
+      - 1883:1883
+      - 9001:9001
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+
+  nodered:
+    image: nodered/node-red:latest
+    container_name: nodered
+    restart: unless-stopped
+    depends_on:
+      - mosquitto
+    environment:
+      - TZ=America/Bogota      
+    ports:
+      - 1880:1880
+    volumes:
+      - ./nodered/data:/data
+
+  influxdb:
+    image: influxdb:latest
+    container_name: influxdb
+    restart: unless-stopped
+    depends_on:
+      - nodered
+    ports:
+      - 8086:8086
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=juan
+      - DOCKER_INFLUXDB_INIT_PASSWORD=juan2201
+      - DOCKER_INFLUXDB_INIT_ORG=juan-organization
+      - DOCKER_INFLUXDB_INIT_BUCKET=sensors
+    volumes:
+      - ./influxdb/data:/var/lib/influxdb2
+      - ./influxdb/config:/etc/influxdb2
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    restart: unless-stopped
+    depends_on:
+      - influxdb
+    ports:
+      - 3000:3000
+    volumes:
+      - ./grafana/storage:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
