@@ -8,6 +8,8 @@ services:
     ports:
       - 1883:1883
       - 9001:9001
+    env_file:
+      - .env.example
     volumes:
       - ./mosquitto/config:/mosquitto/config
       - ./mosquitto/data:/mosquitto/data
@@ -23,6 +25,8 @@ services:
       - TZ=America/Bogota      
     ports:
       - 1880:1880
+    env_file:
+      - .env.example
     volumes:
       - ./nodered/data:/data
 
@@ -34,10 +38,12 @@ services:
       - nodered
     ports:
       - 8086:8086
+    env_file:
+      - .env.example
     environment:
       - DOCKER_INFLUXDB_INIT_MODE=setup
-      - DOCKER_INFLUXDB_INIT_USERNAME=juan
-      - DOCKER_INFLUXDB_INIT_PASSWORD=juan2201
+      - DOCKER_INFLUXDB_INIT_USERNAME=${INFLUXDB_USERNAME}
+      - DOCKER_INFLUXDB_INIT_PASSWORD=${INFLUXDB_PASSWORD}
       - DOCKER_INFLUXDB_INIT_ORG=juan-organization
       - DOCKER_INFLUXDB_INIT_BUCKET=sensors
     volumes:
@@ -51,7 +57,7 @@ services:
     depends_on:
       - influxdb
     ports:
-      - 3000:3000
+      - 3000:3000   
     volumes:
       - ./grafana/storage:/var/lib/grafana
       - ./grafana/provisioning:/etc/grafana/provisioning
